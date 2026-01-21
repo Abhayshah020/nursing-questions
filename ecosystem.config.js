@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "nursing-frontend",
       script: "node_modules/next/dist/bin/next",
-      args: "start -p 3000", // Port you want to run
+      args: "start -p 4051", // Port you want to run
       env: {
         NODE_ENV: "production",
       },
