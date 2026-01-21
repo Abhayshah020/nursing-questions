@@ -1,5 +1,6 @@
 'use client'
 
+import { sendOTP } from '@/utils/sendEmail'
 import { ArrowRight, Lock, Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -10,11 +11,14 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const router = useRouter()
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (email == "" || password == "") {
+            return;
+        }
         setLoading(true);
         setError("");
-
         try {
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/authentication/login`,
@@ -31,12 +35,18 @@ export default function LoginPage() {
             if (!res.ok) {
                 throw new Error(data.message || "Login failed");
             }
-
-            // ✅ Store user only (UI use)
             sessionStorage.setItem("user", JSON.stringify(data.user));
-
-            router.push("/recruitment-forms")
-
+            if (data.user.emailVerified) {
+                router.push("/dashboard")
+            } else {
+                const sentMail = await sendOTP();
+                if (sentMail.sent) {
+                    alert(sentMail.msg)
+                    router.push("/email-verification")
+                } else {
+                    alert(sentMail.msg)
+                }
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -59,10 +69,10 @@ export default function LoginPage() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-semibold text-gray-800">
-                        Welcome Back
+                        Welcome
                     </h1>
                     <p className="mt-2 text-sm text-gray-600">
-                        Secure access to your nursing dashboard
+                        Secure access to your Nursing Q&A
                     </p>
                 </div>
 
@@ -78,6 +88,8 @@ export default function LoginPage() {
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="email"
+                                required
+                                value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@hospital.com"
                                 className="w-full rounded-xl border border-gray-200 bg-white/80 px-10 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
@@ -94,32 +106,30 @@ export default function LoginPage() {
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="password"
+                                required
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
+                                value={password}
                                 className="w-full rounded-xl border border-gray-200 bg-white/80 px-10 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                             />
                         </div>
                     </div>
 
                     {/* Options */}
-                    {/* <div className="flex items-center justify-between text-sm">
-                        <label className="flex items-center gap-2 text-gray-600">
-                            <input
-                                type="checkbox"
-                                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                            />
-                            Remember me
-                        </label>
-                        <a href="#" className="text-teal-700 hover:underline">
+                    <div className="flex items-center justify-between text-sm">
+                        <a href="/register" className="flex hover:underline items-center gap-2 text-gray-600">
+                            Don't have an account?
+                        </a>
+                        <a href="/forgot-password" className="text-teal-700 hover:underline">
                             Forgot password?
                         </a>
-                    </div> */}
+                    </div>
 
                     {/* Button */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 rounded-lg bg-[#007bff] text-primary-foreground cursor-pointer font-semibold hover:bg-[#0056b3] transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-6"
+                        className="w-full text-white py-3 rounded-lg bg-[#007bff] text-primary-foreground cursor-pointer font-semibold hover:bg-[#0056b3] transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-6"
                     >
                         {loading ? (
                             <>
@@ -136,8 +146,10 @@ export default function LoginPage() {
                 </form>
 
                 {/* Footer */}
-                <div className="pt-6">
-                    <a href="https://smsitsolutions.com.au/" className="text-xs text-muted-foreground text-center">
+                <div className="pt-6 text-center">
+                    <a href="https://smsitsolutions.com.au/"
+                        className="text-xs text-black "
+                    >
                         © {new Date().getFullYear()} SMS IT Solutions. All rights reserved.
                     </a>
                 </div>
