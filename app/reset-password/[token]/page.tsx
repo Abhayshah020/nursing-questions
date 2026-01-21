@@ -1,13 +1,12 @@
 'use client'
-
-import { Lock, ArrowRight } from 'lucide-react'
-import { useSearchParams, useRouter } from 'next/navigation'
+export const dynamic = 'force-dynamic'
+import { ArrowRight, Lock } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export default function ResetPasswordPage() {
-    const searchParams = useSearchParams()
+    const { token } = useParams(); // This would come from useParams() in actual implementation
     const router = useRouter()
-    const token = searchParams.get("token")
 
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -21,34 +20,32 @@ export default function ResetPasswordPage() {
         setError("")
         setMessage("")
 
+        if (!token) {
+            setError("Invalid reset link")
+            setLoading(false)
+            return
+        }
+
         try {
-            if (confirmPassword !== password) {
+            if (password !== confirmPassword) {
                 setError("Password and Confirm password must match!")
-                return;
+                return
             }
+
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/authentication/reset-password`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        token,
-                        newPassword: password
-                    })
+                    body: JSON.stringify({ token, newPassword: password })
                 }
             )
 
             const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Reset failed")
 
-            if (!res.ok) {
-                throw new Error(data.message || "Reset failed")
-            }
-
-            setMessage("Password reset successful. Redirecting to login...")
-
-            setTimeout(() => {
-                router.push("/")
-            }, 2000)
+            setMessage("Password reset successful. Redirecting...")
+            setTimeout(() => router.push("/"), 2000)
 
         } catch (err: any) {
             setError(err.message)
@@ -57,7 +54,7 @@ export default function ResetPasswordPage() {
         }
     }
 
-    if (!token) {
+    if (!token || token === null) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <p className="text-red-600">Invalid reset link</p>
