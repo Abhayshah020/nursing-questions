@@ -72,7 +72,7 @@ const Navbar: React.FC = () => {
                                 />
                             </div>
                             <span className="hidden md:block text-lg lg:text-xl font-bold text-gray-800">
-                                SMS Trades & Skills Institute
+                                SMS Skills & Trades Institute
                             </span>
                             <span className="md:hidden text-base font-bold text-gray-800">
                                 SMS Trades
