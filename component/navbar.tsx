@@ -179,7 +179,7 @@ const Navbar: React.FC = () => {
             {/* Overlay for mobile menu */}
             {isMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-30 z-40 md:hidden"
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4 md:hidden"
                     onClick={() => setIsMenuOpen(false)}
                 />
             )}
